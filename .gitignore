@@ -1,4 +1,7 @@
 .DS_Store
+node_modules
 .firebase/
 firebase-debug.log
 firebase-config.js
+migration-data.json
+migration-report.json

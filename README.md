@@ -56,6 +56,16 @@ The script keeps only records whose festival is `Edinburgh Festival Fringe` and 
 
 Firebase web configuration identifies a Firebase project but does not grant administrative access. Database protection comes from Authentication and Firestore Security Rules.
 
+## Migrate the Apps Script records
+
+Generate the private migration package from a complete Google Sheet Excel export:
+
+```bash
+node scripts/build_migration.mjs /path/to/export.xlsx data/shows.json migration-data.json migration-report.json
+```
+
+The migration resolves legacy show IDs to titles, maps those titles to the refreshed catalogue, and combines identical individual records into shared plans. Both generated files are deliberately ignored by Git and must never be committed to the public repository.
+
 ## Legacy prototype
 
 The complete Apps Script version and its original catalogue are preserved in `legacy-apps-script/`.
