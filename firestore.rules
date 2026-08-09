@@ -1,0 +1,52 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    match /groups/fringe-friends-2026/people/{personId} {
+      allow read: if signedIn();
+      allow create, update: if signedIn()
+        && request.resource.data.keys().hasOnly([
+          'id', 'name', 'initials', 'colour', 'displayOrder', 'active'
+        ])
+        && request.resource.data.id == personId
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 40
+        && request.resource.data.initials is string
+        && request.resource.data.initials.size() > 0
+        && request.resource.data.initials.size() <= 3
+        && request.resource.data.colour is string;
+      allow delete: if signedIn();
+    }
+
+    match /groups/fringe-friends-2026/plans/{planId} {
+      allow read: if signedIn();
+      allow create, update: if signedIn()
+        && request.resource.data.keys().hasOnly([
+          'id', 'showId', 'status', 'date', 'time', 'attendeeIds',
+          'updatedAt', 'updatedBy'
+        ])
+        && request.resource.data.id == planId
+        && request.resource.data.showId is string
+        && request.resource.data.status in ['interested', 'dated', 'booked', 'seen']
+        && request.resource.data.attendeeIds is list
+        && request.resource.data.attendeeIds.size() > 0
+        && request.resource.data.attendeeIds.size() <= 30;
+      allow delete: if signedIn();
+    }
+
+    match /groups/fringe-friends-2026/activity/{activityId} {
+      allow read: if signedIn();
+      allow create, update: if signedIn()
+        && request.resource.data.keys().hasOnly(['id', 'text', 'at'])
+        && request.resource.data.id == activityId
+        && request.resource.data.text is string
+        && request.resource.data.text.size() <= 300;
+      allow delete: if signedIn();
+    }
+  }
+}

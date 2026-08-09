@@ -18,7 +18,7 @@ The application currently includes:
 - horizontal date navigation from 3–31 August;
 - responsive mobile and desktop layouts.
 
-Until Firebase is configured, people and plans are stored in the current browser using `localStorage`. This is suitable for interface testing but does not yet share changes between devices.
+People and plans are synchronised through Firebase Authentication and Cloud Firestore. The browser keeps a local copy for immediate rendering and temporary resilience when a connection is interrupted.
 
 ## Run locally
 
@@ -44,15 +44,15 @@ python3 scripts/build_catalog.py /path/to/events.xlsx data/shows.json
 
 The script keeps only records whose festival is `Edinburgh Festival Fringe` and year is `2026`.
 
-## Firebase setup — next phase
+## Firebase setup
 
 1. Create a Firebase project.
 2. Enable Firestore Database.
 3. Enable Anonymous Authentication.
 4. Add a Firebase web application.
-5. Copy `firebase-config.example.js` to `firebase-config.js`.
-6. Paste the web configuration supplied by Firebase.
-7. Add and deploy the supplied Firestore security rules when they are introduced in the Firebase phase.
+5. Put the web configuration supplied by Firebase in `firebase-config.js`.
+6. In Firestore, open **Rules**, paste `firestore.rules`, and publish it.
+7. Add `djksaunders.github.io` under Authentication → Settings → Authorized domains.
 
 Firebase web configuration identifies a Firebase project but does not grant administrative access. Database protection comes from Authentication and Firestore Security Rules.
 
@@ -65,6 +65,12 @@ node scripts/build_migration.mjs /path/to/export.xlsx data/shows.json migration-
 ```
 
 The migration resolves legacy show IDs to titles, maps those titles to the refreshed catalogue, and combines identical individual records into shared plans. Both generated files are deliberately ignored by Git and must never be committed to the public repository.
+
+After enabling Anonymous Authentication, creating Firestore and publishing `firestore.rules`, import the generated private data with:
+
+```bash
+node scripts/import_migration.mjs migration-data.json migration-config.json
+```
 
 ## Legacy prototype
 

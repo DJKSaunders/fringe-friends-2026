@@ -1,12 +1,18 @@
+import { connectFirebase } from "./firebase-store.js";
+
 const COLORS=["#ef476f","#118ab2","#06a77d","#7b61ff","#f08c46","#9c528b","#4d7c0f","#475569"];
 const STATUS={interested:["🤔","Interested"],dated:["🗓","Considering"],booked:["🎟","Booked"],seen:["✓","Seen"]};
 const KEY="fringe-friends-2026";
 const state={shows:[],visible:40,view:"shows",selectedDate:"all",undo:null,...loadState()};
+let remoteStore=null;
 const $=id=>document.getElementById(id);
 const esc=value=>String(value??"").replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]));
 function defaults(){return{people:[{id:crypto.randomUUID(),name:"Daniel",initials:"DS",colour:COLORS[1]}],plans:[],activity:[],currentPersonId:null,recentAttendees:[]}}
 function loadState(){try{return{...defaults(),...JSON.parse(localStorage.getItem(KEY))}}catch{return defaults()}}
-function persist(){localStorage.setItem(KEY,JSON.stringify({people:state.people,plans:state.plans,activity:state.activity,currentPersonId:state.currentPersonId,recentAttendees:state.recentAttendees}))}
+function sharedSnapshot(){return{people:state.people,plans:state.plans,activity:state.activity}}
+function persist(sync=true){localStorage.setItem(KEY,JSON.stringify({...sharedSnapshot(),currentPersonId:state.currentPersonId,recentAttendees:state.recentAttendees}));if(sync&&remoteStore)remoteStore.sync(sharedSnapshot()).catch(showSyncError)}
+function showSyncError(error){console.error(error);$("snackbarText").textContent="Could not synchronise changes";$("undoButton").hidden=true;$("snackbar").classList.add("show");clearTimeout(undoTimer);undoTimer=setTimeout(()=>{$("undoButton").hidden=false;hideSnack()},7000)}
+function applyRemote(data){state.people=data.people;state.plans=data.plans;state.activity=data.activity;if(!person(state.currentPersonId))state.currentPersonId=state.people[0]?.id??null;persist(false);renderAll()}
 function person(id){return state.people.find(p=>p.id===id)}
 function show(id){return state.shows.find(s=>s.id===id)||{id,title:"Unknown show"}}
 function current(){return person(state.currentPersonId)}
@@ -46,3 +52,4 @@ document.addEventListener("click",event=>{const edit=event.target.closest("[data
 $("personButton").onclick=openPeople;$("addPersonButton").onclick=openPersonEditor;$("dialogAddPerson").onclick=openPersonEditor;$("searchInput").oninput=()=>{state.visible=40;renderShows()};$("moreButton").onclick=()=>{state.visible+=40;renderShows()};$("planForm").onsubmit=savePlan;$("deletePlan").onclick=deletePlan;$("undoButton").onclick=()=>state.undo?.();$("selectEveryone").onclick=()=>{document.querySelectorAll("#attendeePicker .attendee-chip").forEach(b=>b.classList.add("selected"));checkConflicts()};document.querySelectorAll(".close-dialog").forEach(b=>b.onclick=()=>b.closest("dialog").close());$("planForm").onchange=()=>{toggleDateFields();checkConflicts()};$("personForm").onsubmit=e=>{e.preventDefault();const fd=new FormData(e.currentTarget);const p={id:crypto.randomUUID(),name:String(fd.get("name")).trim(),initials:String(fd.get("initials")).trim().toUpperCase(),colour:e.currentTarget.dataset.colour};state.people.push(p);state.currentPersonId=p.id;activity(`${p.initials} joined the group`);persist();e.currentTarget.reset();$("personEditor").close();renderAll()};
 
 if(!state.currentPersonId&&state.people.length)state.currentPersonId=state.people[0].id;renderPerson();renderDateStrip();loadShows().catch(error=>{$("loading").innerHTML=`<strong>Could not load shows</strong><span>${esc(error.message)}</span>`});
+connectFirebase(applyRemote,showSyncError).then(store=>{remoteStore=store}).catch(showSyncError);
