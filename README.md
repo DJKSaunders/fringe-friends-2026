@@ -6,7 +6,7 @@ A mobile-first group planner for the 2026 Edinburgh Festival Fringe. The site is
 
 The application currently includes:
 
-- 4,463 official Fringe listings from the 9 August 2026 Festival City export;
+- 4,198 unique Fringe show titles from the 9 August 2026 Festival City export;
 - title-only catalogue search in batches of 40;
 - group plans with multiple attendees;
 - interested, specific-date, booked and seen statuses;
@@ -43,7 +43,7 @@ To regenerate it from a Festival City Excel export:
 python3 scripts/build_catalog.py /path/to/events.xlsx data/shows.json
 ```
 
-The script keeps only records whose festival is `Edinburgh Festival Fringe` and year is `2026`.
+The script keeps only records whose festival is `Edinburgh Festival Fringe` and year is `2026`, then removes duplicate normalized titles. The browser repeats this deduplication as a defensive check when loading a catalogue.
 
 ## Firebase setup
 
