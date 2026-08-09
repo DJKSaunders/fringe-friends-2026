@@ -11,7 +11,8 @@ The application currently includes:
 - group plans with multiple attendees;
 - interested, specific-date, booked and seen statuses;
 - optional five-minute performance times;
-- a compact personal view and chronological Today view;
+- a compact personal view and chronological date view;
+- day-by-day headings, with today and upcoming plans shown first and past dates collapsed;
 - schedule-conflict warnings;
 - optimistic updates and five-second undo;
 - a recent group activity feed;
@@ -64,7 +65,7 @@ Generate the private migration package from a complete Google Sheet Excel export
 node scripts/build_migration.mjs /path/to/export.xlsx data/shows.json migration-data.json migration-report.json
 ```
 
-The migration resolves legacy show IDs to titles, maps those titles to the refreshed catalogue, and combines identical individual records into shared plans. Both generated files are deliberately ignored by Git and must never be committed to the public repository.
+The migration resolves legacy show IDs to titles, maps those titles to the refreshed catalogue, and combines compatible individual records into shared plans. Records for the same show, status and date are combined when their times match, or when one record has a known time and the others have no time. Distinct known performance times remain separate. Both generated files are deliberately ignored by Git and must never be committed to the public repository.
 
 After enabling Anonymous Authentication, creating Firestore and publishing `firestore.rules`, import the generated private data with:
 

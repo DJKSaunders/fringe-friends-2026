@@ -109,7 +109,50 @@ for (const row of rows("Plans")) {
   groups.set(key, existing);
 }
 
-const plans = [...groups.values()].map(plan => ({ ...plan, attendeeIds: plan.attendeeIds.sort() }));
+function mergeAttendance(target, source) {
+  target.attendeeIds = [...new Set([...target.attendeeIds, ...source.attendeeIds])].sort();
+  if (!target.time && source.time) target.time = source.time;
+  if (String(source.updatedAt) > String(target.updatedAt)) {
+    target.updatedAt = source.updatedAt;
+    target.updatedBy = source.updatedBy;
+  }
+}
+
+function consolidateCompatiblePlans(sourcePlans) {
+  const buckets = new Map();
+  for (const plan of sourcePlans) {
+    const key = JSON.stringify([plan.showId, plan.status, plan.date]);
+    const bucket = buckets.get(key) ?? [];
+    bucket.push({ ...plan, attendeeIds: [...plan.attendeeIds] });
+    buckets.set(key, bucket);
+  }
+  const consolidated = [];
+  for (const bucket of buckets.values()) {
+    const timed = new Map();
+    const untimed = [];
+    for (const plan of bucket) {
+      if (!plan.time) {
+        untimed.push(plan);
+      } else if (timed.has(plan.time)) {
+        mergeAttendance(timed.get(plan.time), plan);
+      } else {
+        timed.set(plan.time, plan);
+      }
+    }
+    if (timed.size === 1) {
+      const target = [...timed.values()][0];
+      untimed.forEach(plan => mergeAttendance(target, plan));
+    } else if (untimed.length) {
+      const target = untimed.shift();
+      untimed.forEach(plan => mergeAttendance(target, plan));
+      consolidated.push(target);
+    }
+    consolidated.push(...timed.values());
+  }
+  return consolidated;
+}
+
+const plans = consolidateCompatiblePlans([...groups.values()]);
 const migration = {
   version: 1,
   exportedAt: new Date().toISOString(),

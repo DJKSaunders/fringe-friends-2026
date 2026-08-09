@@ -1,0 +1,87 @@
+.day-section {
+  margin: 0 0 26px;
+}
+
+.day-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 3px 9px;
+  padding-bottom: 7px;
+  border-bottom: 2px solid var(--ink);
+}
+
+.day-heading h3 {
+  margin: 0;
+  font-size: 18px;
+  letter-spacing: -.02em;
+}
+
+.day-heading span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.past-dates {
+  margin-top: 22px;
+  border: 1px solid var(--line);
+  border-radius: 17px;
+  background: #f2eee6;
+  overflow: hidden;
+}
+
+.past-dates summary {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 15px 17px;
+  font-weight: 900;
+  list-style: none;
+}
+
+.past-dates summary::-webkit-details-marker {
+  display: none;
+}
+
+.past-dates summary::before {
+  content: "▸";
+  margin-right: 9px;
+  color: var(--accent);
+}
+
+.past-dates[open] summary::before {
+  content: "▾";
+}
+
+.past-dates summary span {
+  margin-right: auto;
+}
+
+.past-dates summary strong {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.past-date-sections {
+  padding: 4px 12px 1px;
+}
+
+.past-date-sections .day-heading {
+  border-bottom-color: #bbb1a1;
+}
+
+.past-date-sections .card-list {
+  grid-template-columns: 1fr;
+}
+
+@media (max-width: 480px) {
+  .day-heading h3 {
+    font-size: 16px;
+  }
+
+  .past-date-sections {
+    padding: 4px 8px 1px;
+  }
+}
