@@ -25,6 +25,8 @@
 }
 
 .past-dates {
+  grid-column: 1 / -1;
+  width: 100%;
   margin-top: 22px;
   border: 1px solid var(--line);
   border-radius: 17px;
