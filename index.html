@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#241f4b">
+  <title>Fringe Friends 2026</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div><span class="eyebrow">Edinburgh · 3–31 August</span><h1>Fringe Friends <em>2026</em></h1></div>
+    <button id="personButton" class="person-button" type="button"><span id="personAvatar">?</span><span id="personLabel">Choose person</span></button>
+  </header>
+
+  <main>
+    <section id="showsView" class="view active">
+      <div class="section-heading"><div><span class="eyebrow">Programme</span><h2>Find a show</h2></div><span id="catalogCount" class="muted"></span></div>
+      <label class="search"><span>⌕</span><input id="searchInput" type="search" placeholder="Search show titles…" autocomplete="off"></label>
+      <div id="loading" class="loading"><span class="spinner"></span><strong>Loading the Fringe programme…</strong><span id="loadProgress">0% · 0 shows</span><small>This can take up to five seconds.</small></div>
+      <div id="showResults" class="card-list" hidden></div>
+      <button id="moreButton" class="secondary full" type="button" hidden>Show more</button>
+    </section>
+
+    <section id="mineView" class="view">
+      <div class="section-heading"><div><span class="eyebrow">Personal plan</span><h2>My choices</h2></div><span id="mineCount" class="muted"></span></div>
+      <div id="mineList" class="card-list"></div>
+    </section>
+
+    <section id="todayView" class="view">
+      <div class="section-heading"><div><span class="eyebrow">Next up</span><h2>Today</h2></div><span id="todayDate" class="muted"></span></div>
+      <div id="todayList" class="timeline"></div>
+    </section>
+
+    <section id="groupView" class="view">
+      <div class="section-heading"><div><span class="eyebrow">Everyone</span><h2>Group overview</h2></div><button id="addPersonButton" class="secondary" type="button">+ Person</button></div>
+      <div id="dateStrip" class="date-strip" aria-label="Choose date"></div>
+      <div id="groupList" class="card-list"></div>
+      <h3 class="subheading">Recent activity</h3>
+      <div id="activityList" class="activity-list"></div>
+    </section>
+  </main>
+
+  <nav class="bottom-nav" aria-label="Main navigation">
+    <button data-view="shows" class="active"><span>⌕</span>Shows</button>
+    <button data-view="mine"><span>♡</span>Mine</button>
+    <button data-view="today"><span>◷</span>Today</button>
+    <button data-view="group"><span>◎</span>Group</button>
+  </nav>
+
+  <dialog id="personDialog">
+    <form method="dialog" class="dialog-card"><div class="dialog-title"><h2>Planning as</h2><button value="cancel" class="icon-button" aria-label="Close">×</button></div><div id="peoplePicker" class="people-list"></div><button id="dialogAddPerson" value="cancel" class="secondary full" type="button">+ Add a person</button></form>
+  </dialog>
+
+  <dialog id="personEditor">
+    <form id="personForm" class="dialog-card"><div class="dialog-title"><h2>Add a person</h2><button type="button" class="icon-button close-dialog">×</button></div><label>Name<input name="name" required maxlength="40"></label><label>Initials<input name="initials" required maxlength="3" autocapitalize="characters"></label><fieldset><legend>Colour</legend><div id="colourPicker" class="colour-picker"></div></fieldset><button class="primary full">Add person</button></form>
+  </dialog>
+
+  <dialog id="planDialog">
+    <form id="planForm" class="dialog-card plan-form"><div class="dialog-title"><div><span class="eyebrow">Show plan</span><h2 id="planTitle"></h2></div><button type="button" class="icon-button close-dialog">×</button></div>
+      <input name="showId" type="hidden">
+      <fieldset><legend>Status</legend><div class="segmented"><label><input type="radio" name="status" value="interested" checked><span>🤔 Interested</span></label><label><input type="radio" name="status" value="dated"><span>🗓 Date</span></label><label><input type="radio" name="status" value="booked"><span>🎟 Booked</span></label><label><input type="radio" name="status" value="seen"><span>✓ Seen</span></label></div></fieldset>
+      <div class="date-time"><label>Date<input name="date" type="date" min="2026-08-03" max="2026-08-31"></label><label>Time<input name="time" type="time" step="300"></label></div>
+      <fieldset><div class="legend-row"><legend>Who’s attending?</legend><button id="selectEveryone" type="button" class="text-button">Select everyone</button></div><div id="attendeePicker" class="attendee-picker"></div></fieldset>
+      <div id="conflictWarning" class="warning" hidden></div>
+      <div class="form-actions"><button id="deletePlan" type="button" class="danger" hidden>Delete</button><button class="primary">Save plan</button></div>
+    </form>
+  </dialog>
+
+  <div id="snackbar" class="snackbar" role="status"><span id="snackbarText"></span><button id="undoButton" type="button">Undo</button></div>
+  <script type="module" src="src/app.js"></script>
+</body>
+</html>

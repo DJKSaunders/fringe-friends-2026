@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <base target="_top">
+  <style>
+    :root { --ink:#252147; --paper:#fffaf1; --accent:#ef476f; --gold:#ffd166; --mint:#06d6a0; --blue:#118ab2; --line:#ddd6c7; }
+    * { box-sizing:border-box; }
+    body { margin:0; color:var(--ink); background:var(--paper); font:16px/1.45 system-ui,-apple-system,sans-serif; }
+    button,select,input { font:inherit; }
+    header { position:sticky; top:0; z-index:5; padding:14px 20px; background:var(--ink); color:white; box-shadow:0 2px 10px #0002; }
+    .header-inner,.shell { max-width:1120px; margin:auto; }
+    .header-inner { display:flex; gap:18px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
+    h1 { margin:0; font-size:clamp(1.3rem,4vw,2rem); }
+    .identity { display:flex; gap:7px; align-items:center; }
+    .identity select { min-width:170px; }
+    .add-person,.edit-person { padding:8px 10px; background:var(--gold); color:var(--ink); }
+    .edit-person { background:#ffffff24; color:white; }
+    .shell { padding:18px 14px 50px; }
+    nav { display:flex; gap:7px; margin-bottom:14px; overflow:auto; scrollbar-width:none; }
+    nav::-webkit-scrollbar { display:none; }
+    button,.tab { border:0; border-radius:999px; padding:9px 14px; cursor:pointer; background:#e9e2d6; color:var(--ink); font-weight:700; white-space:nowrap; }
+    button.primary,.tab.active { background:var(--accent); color:white; }
+    button.danger { color:#9a1734; }
+    button:disabled { opacity:.5; cursor:wait; }
+    select,input { min-height:44px; border:1px solid var(--line); border-radius:10px; background:white; padding:8px 10px; color:var(--ink); }
+    .toolbar { display:grid; grid-template-columns:minmax(220px,2fr) repeat(3,minmax(130px,1fr)); gap:8px; margin-bottom:14px; }
+    .cards { display:grid; gap:9px; }
+    .card { background:white; border:1px solid var(--line); border-radius:13px; padding:13px; box-shadow:0 2px 8px #2521470a; }
+    .card h3 { margin:0 0 3px; font-size:1.05rem; }
+    .plan-controls { display:flex; flex-wrap:wrap; gap:7px; align-items:center; margin-top:10px; }
+    .plan-controls select { flex:1 1 170px; }
+    .date { flex:1 1 155px; }
+    .time { flex:0 1 118px; }
+    .badge { display:inline-flex; align-items:center; border-radius:999px; padding:3px 7px; margin:2px; font-size:.78rem; line-height:1.25; font-weight:800; background:#eee; white-space:nowrap; }
+    .want_to_see { background:#ffedb3; } .want_to_see_date { background:#cdeef8; } .booked { background:#bcefdc; } .seen { background:#e2d5f5; }
+    .overview-row { display:grid; grid-template-columns:minmax(170px,2fr) repeat(4,minmax(78px,.72fr)); gap:5px; align-items:start; }
+    .overview-cell { min-width:0; }
+    .overview-head { font-size:.8rem; text-transform:uppercase; font-weight:800; color:#716a7d; }
+    .empty,.loading,.error { padding:32px; text-align:center; border:1px dashed var(--line); border-radius:16px; }
+    .progress-copy { font-weight:800; }
+    .spinner { width:34px; height:34px; margin:0 auto 12px; border:4px solid #ded7ca; border-top-color:var(--accent); border-radius:50%; animation:spin .8s linear infinite; }
+    .loading-note { margin-top:7px; font-size:.78rem; color:#716a7d; }
+    .progress-track { width:min(420px,90%); height:8px; margin:10px auto 0; overflow:hidden; border-radius:999px; background:#e5ded1; }
+    .progress-fill { height:100%; border-radius:inherit; background:var(--accent); transition:width .2s ease; }
+    .error { color:#9a1734; background:#fff0f3; }
+    .toast { position:fixed; right:18px; bottom:18px; display:flex; gap:12px; align-items:center; background:var(--ink); color:white; padding:12px 16px; border-radius:10px; box-shadow:0 6px 24px #0004; z-index:20; }
+    .toast button { padding:5px 9px; background:var(--gold); }
+    .legend { margin:0 0 10px; border:1px solid var(--line); border-radius:11px; background:#fff; }
+    .legend summary { padding:8px 11px; cursor:pointer; font-size:.82rem; font-weight:800; }
+    .legend-body { display:flex; flex-wrap:wrap; gap:8px 16px; padding:0 11px 10px; font-size:.78rem; color:#615b6d; }
+    .legend-body b { color:var(--ink); }
+    .result-count { margin:0 0 8px; font-size:.75rem; color:#716a7d; }
+    dialog { width:min(430px,calc(100% - 24px)); border:0; border-radius:16px; padding:0; color:var(--ink); box-shadow:0 20px 70px #0006; }
+    dialog::backdrop { background:#25214799; }
+    .person-form { display:grid; gap:12px; padding:20px; }
+    .person-form h2 { margin:0; }
+    .person-form label { display:grid; gap:5px; font-size:.82rem; font-weight:800; }
+    .person-fields { display:grid; grid-template-columns:1fr 100px; gap:10px; }
+    .person-actions { display:flex; justify-content:flex-end; gap:8px; }
+    input[type="color"] { width:100%; padding:4px; }
+    .time-label { display:inline-block; min-width:45px; margin-right:7px; color:var(--accent); font-variant-numeric:tabular-nums; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    [hidden] { display:none !important; }
+    @media(max-width:760px) {
+      header { padding:10px 12px; }
+      .header-inner { gap:8px; }
+      h1 { font-size:1.28rem; }
+      .identity { width:100%; justify-content:space-between; font-size:.88rem; }
+      .identity select { min-width:0; flex:1; max-width:none; min-height:38px; }
+      .add-person,.edit-person { flex:0 0 auto; padding:7px 8px; }
+      .shell { padding:12px 9px 36px; }
+      nav { margin-bottom:10px; }
+      button,.tab { padding:8px 11px; font-size:.88rem; }
+      select,input { min-height:40px; }
+      .toolbar { grid-template-columns:1fr 1fr; gap:6px; margin-bottom:10px; }
+      .toolbar input { grid-column:1/-1; }
+      #friendFilter { grid-column:1/-1; }
+      .toolbar select { min-width:0; font-size:.88rem; }
+      .cards { gap:7px; }
+      .card { padding:10px; border-radius:11px; }
+      .card h3 { font-size:.96rem; line-height:1.25; }
+      .plan-controls { display:grid; grid-template-columns:1fr auto; margin-top:8px; gap:6px; }
+      .plan-controls select { grid-column:1/-1; width:100%; }
+      .plan-controls .date { min-width:0; width:100%; }
+      .plan-controls .time { min-width:0; width:100%; }
+      .overview-row { display:block; }
+      .overview-head { display:none; }
+      .overview-row > div:first-child { margin-bottom:6px; }
+      .overview-cell { display:flex; align-items:center; gap:3px; min-height:25px; padding:2px 0; }
+      .overview-cell.is-empty { display:none; }
+      .overview-cell::before { content:attr(data-label); flex:0 0 76px; font-size:.6rem; line-height:1.1; font-weight:800; text-transform:uppercase; color:#716a7d; }
+      .badge { margin:1px; padding:3px 6px; font-size:.72rem; }
+      .person-form { padding:16px; }
+    }
+  </style>
+</head>
+<body>
+  <header><div class="header-inner"><h1>Fringe Friends <span style="color:var(--gold)">2026</span></h1><div class="identity"><label for="friend">Planning as</label><select id="friend"></select><button id="editPerson" class="edit-person" type="button" disabled>Edit</button><button id="addPerson" class="add-person" type="button">+ Person</button></div></div></header>
+  <dialog id="personDialog">
+    <form id="personForm" class="person-form">
+      <h2 id="personDialogTitle">Add a person</h2>
+      <label>Name<input id="personName" maxlength="60" autocomplete="name" required></label>
+      <div class="person-fields">
+        <label>Initials<input id="personInitials" maxlength="3" pattern="[A-Za-z0-9]{1,3}" placeholder="DS" required></label>
+        <label>Colour<input id="personColor" type="color" value="#118ab2"></label>
+      </div>
+      <div class="person-actions"><button id="cancelPerson" type="button">Cancel</button><button id="savePerson" class="primary" type="submit">Add person</button></div>
+    </form>
+  </dialog>
+  <main class="shell">
+    <nav><button class="tab active" data-view="browse">Find shows</button><button class="tab" data-view="mine">My choices</button><button class="tab" data-view="overview">Group overview</button><button class="tab" data-view="dates">By date</button></nav>
+    <section class="toolbar">
+      <input id="search" type="search" placeholder="Search show title…" autocomplete="off">
+      <select id="statusFilter"><option value="">All statuses</option><option value="want_to_see">Want to see</option><option value="want_to_see_date">Specific date</option><option value="booked">Booked</option><option value="seen">Seen</option></select>
+      <select id="dateFilter"><option value="">All dates</option></select>
+      <select id="friendFilter"><option value="">All friends</option></select>
+    </section>
+    <details class="legend"><summary>Status guide</summary><div class="legend-body"><span><b>Want to see</b> — general interest</span><span><b>🤔 Specific date</b> — considering a date</span><span><b>🎟️ Booked</b> — ticket booked</span><span><b>👀 Seen</b> — attended</span></div></details>
+    <div id="resultCount" class="result-count"></div>
+    <div id="content" class="loading"><div class="spinner" aria-hidden="true"></div><div class="progress-copy">Loading the Fringe programme…</div><div class="loading-note">This may take up to five seconds.</div></div>
+  </main>
+  <script>
+    const LABELS={want_to_see:'Want to see',want_to_see_date:'Want to see on date',booked:'Booked',seen:'Seen'};
+    const STATUS_ICONS={want_to_see_date:'🤔',booked:'🎟️',seen:'👀'};
+    const state={data:null,view:'browse',search:'',status:'',date:'',friendFilter:'',limit:30,searchResults:[],searchMatched:0,catalogTotal:0,searchTimer:null,personMode:'add'};
+    const el=id=>document.getElementById(id);
+    const escapeHtml=value=>String(value??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+    const planKey=(friendId,showId)=>`${friendId}|${showId}`;
+    const currentFriend=()=>el('friend').value;
+    const showMap=()=>new Map(state.data.shows.map(show=>[show.id,show]));
+    const friendMap=()=>new Map(state.data.friends.map(friend=>[friend.id,friend]));
+    const planMap=()=>new Map(state.data.plans.map(plan=>[planKey(plan.friendId,plan.showId),plan]));
+    function dates(){ const out=[]; for(let d=3;d<=31;d++) out.push(`2026-08-${String(d).padStart(2,'0')}`); return out; }
+    function formatDate(date){ if(!date)return''; return new Intl.DateTimeFormat('en-GB',{weekday:'short',day:'numeric',month:'short',timeZone:'Europe/London'}).format(new Date(`${date}T12:00:00Z`)); }
+    function init(data){
+      state.data=data;
+      const saved=localStorage.getItem('fringeFriend');
+      refreshFriendMenus(data.friends.some(f=>f.id===saved)?saved:'');
+      el('dateFilter').innerHTML+=dates().map(d=>`<option value="${d}">${formatDate(d)}</option>`).join('');
+      requestShowSearch();
+    }
+    function refreshFriendMenus(selectedId){
+      const filterValue=el('friendFilter').value;
+      const options=state.data.friends.map(f=>`<option value="${escapeHtml(f.id)}">${escapeHtml(f.initials)} — ${escapeHtml(f.name)}</option>`).join('');
+      el('friend').innerHTML='<option value="">Choose your name…</option>'+options;
+      el('friendFilter').innerHTML='<option value="">All friends</option>'+options;
+      if(state.data.friends.some(f=>f.id===selectedId))el('friend').value=selectedId;
+      if(state.data.friends.some(f=>f.id===filterValue))el('friendFilter').value=filterValue;
+      el('editPerson').disabled=!el('friend').value;
+    }
+    function showProgress(loaded,total){
+      const percent=total?Math.round((loaded/total)*100):0;
+      const numbers=total?`${loaded.toLocaleString()} of ${total.toLocaleString()} show titles`:`${loaded.toLocaleString()} show titles`;
+      el('content').className='loading';
+      el('content').innerHTML=`<div class="spinner" aria-hidden="true"></div><div class="progress-copy">Loading ${percent}% · ${numbers}</div><div class="loading-note">This may take up to five seconds.</div><div class="progress-track"><div class="progress-fill" style="width:${percent}%"></div></div>`;
+    }
+    function mergeShows(shows){const planIds=new Set(state.data.plans.map(plan=>plan.showId));const existing=new Map(state.data.shows.filter(show=>planIds.has(show.id)).map(show=>[show.id,show]));shows.forEach(show=>existing.set(show.id,show));state.data.shows=[...existing.values()];}
+    function requestShowSearch(){
+      if(!state.data)return;
+      showProgress(0,state.catalogTotal);
+      google.script.run.withSuccessHandler(result=>{
+        state.searchResults=result.shows;state.searchMatched=result.matched;state.catalogTotal=result.total;mergeShows(result.shows);showProgress(result.total,result.total);render();
+      }).withFailureHandler(fail).searchShows(state.search,state.limit);
+    }
+    function fail(error){ el('content').className='error'; el('content').textContent=error.message||String(error); }
+    google.script.run.withSuccessHandler(init).withFailureHandler(fail).getInitialData();
+    document.querySelectorAll('.tab').forEach(tab=>tab.onclick=()=>{ document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t===tab)); state.view=tab.dataset.view; state.limit=30; render(); });
+    el('friend').onchange=()=>{ localStorage.setItem('fringeFriend',currentFriend());el('editPerson').disabled=!currentFriend();render(); };
+    el('addPerson').onclick=()=>openPersonDialog('add');
+    el('editPerson').onclick=()=>openPersonDialog('edit');
+    el('cancelPerson').onclick=()=>el('personDialog').close();
+    el('personName').oninput=()=>{if(!el('personInitials').dataset.edited)el('personInitials').value=initials(el('personName').value);};
+    el('personInitials').oninput=()=>{el('personInitials').dataset.edited='1';el('personInitials').value=el('personInitials').value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,3);};
+    el('personForm').onsubmit=event=>{event.preventDefault();savePerson();};
+    el('search').oninput=e=>{state.search=e.target.value.trim().toLocaleLowerCase();state.limit=30;clearTimeout(state.searchTimer);state.searchTimer=setTimeout(requestShowSearch,280);};
+    el('statusFilter').onchange=e=>{state.status=e.target.value;render();};
+    el('dateFilter').onchange=e=>{state.date=e.target.value;render();};
+    el('friendFilter').onchange=e=>{state.friendFilter=e.target.value;render();};
+    function filteredPlans(){ return state.data.plans.filter(p=>(!state.status||p.status===state.status)&&(!state.date||p.date===state.date)&&(!state.friendFilter||p.friendId===state.friendFilter)); }
+    function matches(show){ return !state.search||show.title.toLocaleLowerCase().includes(state.search); }
+    function render(){
+      if(!state.data)return;
+      el('statusFilter').hidden=state.view==='browse'; el('dateFilter').hidden=state.view==='browse'||state.view==='mine'; el('friendFilter').hidden=state.view==='browse'||state.view==='mine';
+      el('resultCount').textContent=state.view==='browse'?`Showing ${state.searchResults.length.toLocaleString()} of ${state.searchMatched.toLocaleString()} matching titles · ${state.catalogTotal.toLocaleString()} total`:'';
+      if(state.view==='browse') renderBrowse(false); else if(state.view==='mine') renderBrowse(true); else if(state.view==='overview') renderOverview(); else renderDates();
+    }
+    function renderBrowse(mine){
+      const me=currentFriend(), plans=planMap();
+      if(mine&&!me){ empty('Choose your name to see your selections.'); return; }
+      let shows=mine?state.data.shows.filter(matches):state.searchResults;
+      if(mine) shows=shows.filter(s=>plans.has(planKey(me,s.id))&&(!state.status||plans.get(planKey(me,s.id)).status===state.status));
+      const visible=shows.slice(0,state.limit);
+      const remaining=mine?shows.length-visible.length:Math.max(0,state.searchMatched-visible.length);
+      el('content').className='cards'; el('content').innerHTML=visible.map(show=>showCard(show,plans.get(planKey(me,show.id)))).join('')+(remaining?`<button id="more">Show more (${remaining.toLocaleString()} remaining)</button>`:'');
+      if(el('more'))el('more').onclick=()=>{state.limit+=30;requestShowSearch();};
+    }
+    function showCard(show,plan){
+      const disabled=currentFriend()?'':'disabled';
+      return `<article class="card"><h3>${escapeHtml(show.title)}</h3><div class="plan-controls"><select data-status="${show.id}" ${disabled}><option value="">Choose status…</option>${Object.entries(LABELS).map(([v,l])=>`<option value="${v}" ${plan?.status===v?'selected':''}>${l}</option>`).join('')}</select><input class="date" type="date" min="${state.data.dateMin}" max="${state.data.dateMax}" data-date="${show.id}" value="${plan?.date||''}" ${disabled} ${plan?.status==='want_to_see_date'||plan?.status==='booked'||plan?.status==='seen'?'':'hidden'}><input class="time" type="time" step="300" data-time="${show.id}" value="${plan?.time||''}" aria-label="Performance time" ${disabled} ${plan?.status==='want_to_see_date'||plan?.status==='booked'||plan?.status==='seen'?'':'hidden'}><button class="primary" onclick="save('${show.id}')" ${disabled}>Save</button>${plan?`<button class="danger" onclick="removePlan('${show.id}')">Remove</button>`:''}</div></article>`;
+    }
+    document.addEventListener('change',event=>{ if(event.target.matches('[data-status]')){const id=event.target.dataset.status,status=event.target.value,date=el('content').querySelector(`[data-date="${id}"]`),time=el('content').querySelector(`[data-time="${id}"]`),dated=['want_to_see_date','booked','seen'].includes(status);date.hidden=!dated;time.hidden=!dated;if(!dated){date.value='';time.value='';}} });
+    function save(showId){
+      const friendId=currentFriend(),status=el('content').querySelector(`[data-status="${showId}"]`).value,date=el('content').querySelector(`[data-date="${showId}"]`).value,time=el('content').querySelector(`[data-time="${showId}"]`).value;
+      if(!friendId)return toast('Choose your name first.'); if(!status)return toast('Choose a status.'); if(['want_to_see_date','booked'].includes(status)&&!date)return toast('Choose a date.');
+      if(time&&Number(time.split(':')[1])%5!==0)return toast('Use a five-minute time, such as 13:10 or 15:25.');
+      const previous=state.data.plans.find(p=>p.friendId===friendId&&p.showId===showId);const previousCopy=previous?{...previous}:null;
+      setBusy(true); google.script.run.withSuccessHandler(plan=>{putPlan(plan);setBusy(false);toast('Saved','Undo',()=>restorePlan(previousCopy,friendId,showId));render();}).withFailureHandler(e=>{setBusy(false);toast(e.message||e);}).savePlan({friendId,showId,status,date,time});
+    }
+    function removePlan(showId){const friendId=currentFriend(),previous=state.data.plans.find(p=>p.friendId===friendId&&p.showId===showId),previousCopy=previous?{...previous}:null;setBusy(true);google.script.run.withSuccessHandler(()=>{removeLocalPlan(friendId,showId);setBusy(false);toast('Removed','Undo',()=>restorePlan(previousCopy,friendId,showId));render();}).withFailureHandler(e=>{setBusy(false);toast(e.message||e);}).deletePlan(friendId,showId);}
+    function putPlan(plan){const i=state.data.plans.findIndex(p=>p.friendId===plan.friendId&&p.showId===plan.showId);if(i>=0)state.data.plans[i]=plan;else state.data.plans.push(plan);}
+    function removeLocalPlan(friendId,showId){state.data.plans=state.data.plans.filter(p=>!(p.friendId===friendId&&p.showId===showId));}
+    function restorePlan(previous,friendId,showId){setBusy(true);if(previous){google.script.run.withSuccessHandler(plan=>{putPlan(plan);setBusy(false);toast('Change undone');render();}).withFailureHandler(e=>{setBusy(false);toast(e.message||e);}).savePlan(previous);}else{google.script.run.withSuccessHandler(()=>{removeLocalPlan(friendId,showId);setBusy(false);toast('Change undone');render();}).withFailureHandler(e=>{setBusy(false);toast(e.message||e);}).deletePlan(friendId,showId);}}
+    function renderOverview(){
+      const shows=showMap(),friends=friendMap(),grouped=new Map(); filteredPlans().forEach(p=>{if(!grouped.has(p.showId))grouped.set(p.showId,[]);grouped.get(p.showId).push(p);});
+      const entries=[...grouped].map(([id,plans])=>[shows.get(id),plans]).filter(([s])=>s&&matches(s)).sort((a,b)=>a[0].title.localeCompare(b[0].title));
+      if(!entries.length){empty('No matching group choices.');return;}
+      el('content').className='cards'; el('content').innerHTML=`<div class="card overview-row overview-head"><div>Show</div><div>Want to see</div><div>Specific date</div><div>Booked</div><div>Seen</div></div>`+entries.map(([show,plans])=>`<article class="card overview-row"><div><h3>${escapeHtml(show.title)}</h3></div>${Object.keys(LABELS).map(status=>overviewCell(status,plans,friends)).join('')}</article>`).join('');
+    }
+    function overviewCell(status,plans,friends){const matching=plans.filter(p=>p.status===status);return `<div class="overview-cell ${matching.length?'':'is-empty'}" data-label="${LABELS[status]}">${matching.map(p=>badge(friends.get(p.friendId),p)).join('')||'—'}</div>`;}
+    function initials(name){const parts=String(name||'?').trim().split(/\s+/).filter(Boolean);if(!parts.length)return'?';if(parts.length===1)return parts[0].slice(0,2).toUpperCase();return `${parts[0][0]}${parts[parts.length-1][0]}`.toUpperCase();}
+    function textColor(background){const value=background.replace('#','');const r=parseInt(value.slice(0,2),16),g=parseInt(value.slice(2,4),16),b=parseInt(value.slice(4,6),16);return (r*299+g*587+b*114)/1000>155?'#252147':'#ffffff';}
+    function badge(friend,p,showStatusIcon=false){const person=friend||{name:'Unknown',initials:'?',color:'#716a7d'};const detail=`${person.name} — ${LABELS[p.status]}${p.date?` — ${formatDate(p.date)}`:''}${p.time?` at ${p.time}`:''}`;const icon=showStatusIcon&&STATUS_ICONS[p.status]?`${STATUS_ICONS[p.status]} `:'';const suffix=showStatusIcon?(p.time?` · ${p.time}`:''):`${p.date?` · ${formatDate(p.date).replace(/^\w+,?\s*/, '')}`:''}${p.time?` · ${p.time}`:''}`;return `<span class="badge" style="background:${person.color};color:${textColor(person.color)}" title="${escapeHtml(detail)}" aria-label="${escapeHtml(detail)}">${icon}${escapeHtml(person.initials||initials(person.name))}${suffix}</span>`;}
+    function earliestTime(plans){const times=plans.map(plan=>plan.time).filter(Boolean).sort();return times[0]||'';}
+    function openPersonDialog(mode){
+      state.personMode=mode;el('personForm').reset();delete el('personInitials').dataset.edited;
+      const friend=mode==='edit'?state.data.friends.find(item=>item.id===currentFriend()):null;
+      el('personDialogTitle').textContent=friend?'Edit person':'Add a person';el('savePerson').textContent=friend?'Save changes':'Add person';
+      el('personName').value=friend?.name||'';el('personInitials').value=friend?.initials||'';el('personColor').value=friend?.color||'#118ab2';
+      el('personDialog').showModal();el('personName').focus();
+    }
+    function savePerson(){
+      const input={id:state.personMode==='edit'?currentFriend():'',name:el('personName').value,initials:el('personInitials').value,color:el('personColor').value};
+      setBusy(true);
+      const success=friend=>{const index=state.data.friends.findIndex(item=>item.id===friend.id);if(index>=0)state.data.friends[index]=friend;else state.data.friends.push(friend);refreshFriendMenus(friend.id);localStorage.setItem('fringeFriend',friend.id);el('personDialog').close();delete el('personInitials').dataset.edited;setBusy(false);toast(state.personMode==='edit'?`${friend.name} updated`:`${friend.name} added`);render();};
+      const runner=google.script.run.withSuccessHandler(success).withFailureHandler(error=>{setBusy(false);toast(error.message||error);});
+      if(state.personMode==='edit')runner.updateFriend(input);else runner.addFriend(input);
+    }
+    function renderDates(){
+      const shows=showMap(),friends=friendMap(),plans=filteredPlans().filter(p=>p.date&&['want_to_see_date','booked','seen'].includes(p.status)); const grouped=new Map(); plans.forEach(p=>{if(!grouped.has(p.date))grouped.set(p.date,new Map());const day=grouped.get(p.date);if(!day.has(p.showId))day.set(p.showId,[]);day.get(p.showId).push(p);});
+      const blocks=[...grouped].sort().map(([date,day])=>{const rows=[...day].map(([id,ps])=>[shows.get(id),ps]).filter(([s])=>s&&matches(s)).sort((a,b)=>(earliestTime(a[1])||'99:99').localeCompare(earliestTime(b[1])||'99:99')||a[0].title.localeCompare(b[0].title));if(!rows.length)return'';return `<section><h2>${formatDate(date)}</h2><div class="cards">${rows.map(([s,ps])=>`<article class="card"><h3>${earliestTime(ps)?`<span class="time-label">${escapeHtml(earliestTime(ps))}</span>`:''}${escapeHtml(s.title)}</h3>${ps.map(p=>badge(friends.get(p.friendId),p,true)).join('')}</article>`).join('')}</div></section>`;}).join('');
+      if(!blocks){empty('No matching dated choices.');return;} el('content').className='';el('content').innerHTML=blocks;
+    }
+    function empty(message){el('content').className='empty';el('content').textContent=message;}
+    function setBusy(busy){document.querySelectorAll('button').forEach(b=>b.disabled=busy);if(!busy)el('editPerson').disabled=!currentFriend();}
+    function toast(message,actionLabel,action){document.querySelectorAll('.toast').forEach(node=>node.remove());const node=document.createElement('div');node.className='toast';const copy=document.createElement('span');copy.textContent=message;node.append(copy);if(action){const button=document.createElement('button');button.type='button';button.textContent=actionLabel;button.onclick=()=>{node.remove();action();};node.append(button);}document.body.append(node);setTimeout(()=>node.remove(),action?6000:2600);}
+  </script>
+</body>
+</html>
